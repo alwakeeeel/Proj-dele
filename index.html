@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>النظام المحاسبي الكامل</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Tahoma,Arial,sans-serif;
+}
+body{
+    background:#f3f4f6;
+}
+header{
+    background:#0f172a;
+    color:white;
+    text-align:center;
+    padding:18px;
+    font-size:24px;
+    font-weight:bold;
+}
+nav{
+    background:white;
+    padding:12px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    justify-content:center;
+    box-shadow:0 2px 8px rgba(0,0,0,.08);
+}
+nav button{
+    border:none;
+    background:#2563eb;
+    color:white;
+    padding:10px 14px;
+    border-radius:8px;
+    cursor:pointer;
+}
+nav button:hover{
+    background:#1d4ed8;
+}
+.page{
+    display:none;
+    padding:20px;
+}
+.page.active{
+    display:block;
+}
+.card{
+    background:white;
+    padding:18px;
+    border-radius:12px;
+    box-shadow:0 2px 8px rgba(0,0,0,.08);
+    margin-bottom:18px;
+}
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:12px;
+}
+.box{
+    background:white;
+    padding:18px;
+    border-radius:12px;
+    text-align:center;
+    font-size:18px;
+    font-weight:bold;
+    box-shadow:0 2px 8px rgba(0,0,0,.08);
+}
+label{
+    display:block;
+    margin-top:10px;
+    margin-bottom:5px;
+    font-weight:bold;
+}
+input,select{
+    width:100%;
+    padding:9px;
+    border:1px solid #d1d5db;
+    border-radius:8px;
+}
+button.green{
+    background:#16a34a;
+    margin-top:14px;
+}
+button.red{
+    background:#dc2626;
+}
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:15px;
+}
+th,td{
+    border:1px solid #e5e7eb;
+    padding:8px;
+    text-align:center;
+}
+th{
+    background:#e5e7eb;
+}
+.total{
+    margin-top:12px;
+    font-size:18px;
+    font-weight:bold;
+}
+</style>
+</head>
+<body>
+
+<header>📊 النظام المحاسبي الكامل</header>
+
+<nav>
+<button onclick="فتح_صفحة('dashboard')">الرئيسية</button>
+<button onclick="فتح_صفحة('accounts')">الحسابات</button>
+<button onclick="فتح_صفحة('entry')">القيود</button>
+<button onclick="فتح_صفحة('ledger')">الأستاذ العام</button>
+<button onclick="فتح_صفحة('trial')">ميزان المراجعة</button>
+<button onclick="فتح_صفحة('income')">قائمة الدخل</button>
+<button onclick="فتح_صفحة('balance')">الميزانية</button>
+</nav>
+
+<!-- الرئيسية -->
+<div class="page active" id="dashboard">
+<div class="grid">
+<div class="box">عدد القيود<br><span id="عدد_القيود">0</span></div>
+<div class="box">الإيرادات<br><span id="الإيرادات">0</span></div>
+<div class="box">المصروفات<br><span id="المصروفات">0</span></div>
+<div class="box">صافي الربح<br><span id="الربح">0</span></div>
+</div>
+</div>
+
+<!-- الحسابات -->
+<div class="page" id="accounts">
+<div class="card">
+<h2>دليل الحسابات</h2>
+<table>
+<thead>
+<tr>
+<th>الكود</th>
+<th>اسم الحساب</th>
+</tr>
+</thead>
+<tbody id="جدول_الحسابات"></tbody>
+</table>
+</div>
+</div>
+
+<!-- القيود -->
+<div class="page" id="entry">
+<div class="card">
+<h2>إضافة قيد جديد</h2>
+
+<label>التاريخ</label>
+<input type="date" id="تاريخ">
+
+<label>الحساب</label>
+<select id="اختيار_الحساب"></select>
+
+<label>البيان</label>
+<input type="text" id="بيان">
+
+<label>مدين</label>
+<input type="number" id="مدين" value="0">
+
+<label>دائن</label>
+<input type="number" id="دائن" value="0">
+
+<button class="green" onclick="إضافة_قيد()">➕ إضافة</button>
+
+<table>
+<thead>
+<tr>
+<th>التاريخ</th>
+<th>الحساب</th>
+<th>البيان</th>
+<th>مدين</th>
+<th>دائن</th>
+<th>حذف</th>
+</tr>
+</thead>
+<tbody id="جدول_القيود"></tbody>
+</table>
+</div>
+</div>
+
+<!-- الأستاذ -->
+<div class="page" id="ledger">
+<div class="card">
+<h2>الأستاذ العام</h2>
+
+<label>اختر الحساب</label>
+<select id="اختيار_الأستاذ" onchange="عرض_الأستاذ()"></select>
+
+<table>
+<thead>
+<tr>
+<th>التاريخ</th>
+<th>البيان</th>
+<th>مدين</th>
+<th>دائن</th>
+<th>الرصيد</th>
+</tr>
+</thead>
+<tbody id="جدول_الأستاذ"></tbody>
+</table>
+
+<div class="total">
+الرصيد النهائي: <span id="رصيد_الأستاذ">0</span>
+</div>
+
+</div>
+</div>
+
+<!-- ميزان -->
+<div class="page" id="trial">
+<div class="card">
+<h2>ميزان المراجعة</h2>
+<table>
+<thead>
+<tr>
+<th>الحساب</th>
+<th>مدين</th>
+<th>دائن</th>
+</tr>
+</thead>
+<tbody id="جدول_الميزان"></tbody>
+</table>
+</div>
+</div>
+
+<!-- دخل -->
+<div class="page" id="income">
+<div class="card">
+<h2>قائمة الدخل</h2>
+<p>الإيرادات: <span id="دخل_إيراد">0</span></p>
+<p>المصروفات: <span id="دخل_مصروف">0</span></p>
+<p><strong>صافي الربح: <span id="دخل_ربح">0</span></strong></p>
+</div>
+</div>
+
+<!-- ميزانية -->
+<div class="page" id="balance">
+<div class="card">
+<h2>الميزانية العمومية</h2>
+<p>الأصول: <span id="ميزانية_أصول">0</span></p>
+<p>الخصوم: <span id="ميزانية_خصوم">0</span></p>
+<p>حقوق الملكية: <span id="ميزانية_ملكية">0</span></p>
+</div>
+</div>
+
+<script>
+
+const الحسابات = [
+{الكود:"101",الاسم:"الأصول الثابتة"},
+{الكود:"102005001",الاسم:"الصندوق الرئيسي"},
+{الكود:"102005002",الاسم:"البنك الأهلي"},
+{الكود:"102002001",الاسم:"العملاء التجاريين"},
+{الكود:"201001001",الاسم:"المورد الرئيسي"},
+{الكود:"401001",الاسم:"إيرادات المبيعات"},
+{الكود:"402",الاسم:"إيرادات متنوعة"},
+{الكود:"501001",الاسم:"مشتريات بضاعة"},
+{الكود:"502001",الاسم:"رواتب وأجور"},
+{الكود:"502002",الاسم:"إيجارات"},
+{الكود:"502003",الاسم:"كهرباء ومياه"}
+];
+
+let القيود = JSON.parse(localStorage.getItem("entries")) || [];
+
+function حفظ(){
+localStorage.setItem("entries",JSON.stringify(القيود));
+تحديث_كامل();
+}
+
+function فتح_صفحة(اسم){
+document.querySelectorAll(".page").forEach(صفحة=>{
+صفحة.classList.remove("active");
+});
+document.getElementById(اسم).classList.add("active");
+}
+
+function تحميل_الحسابات(){
+
+let جدول = document.getElementById("جدول_الحسابات");
+let اختيار1 = document.getElementById("اختيار_الحساب");
+let اختيار2 = document.getElementById("اختيار_الأستاذ");
+
+جدول.innerHTML="";
+اختيار1.innerHTML="";
+اختيار2.innerHTML="<option value=''>اختر حساب</option>";
+
+الحسابات.forEach(حساب=>{
+
+جدول.innerHTML += `
+<tr>
+<td>${حساب.الكود}</td>
+<td>${حساب.الاسم}</td>
+</tr>`;
+
+اختيار1.innerHTML += `
+<option value="${حساب.الكود}">
+${حساب.الكود} - ${حساب.الاسم}
+</option>`;
+
+اختيار2.innerHTML += `
+<option value="${حساب.الكود}">
+${حساب.الكود} - ${حساب.الاسم}
+</option>`;
+
+});
+}
+
+function إضافة_قيد(){
+
+let التاريخ = document.getElementById("تاريخ").value;
+let الحساب = document.getElementById("اختيار_الحساب").value;
+let البيان = document.getElementById("بيان").value;
+let مدين = Number(document.getElementById("مدين").value);
+let دائن = Number(document.getElementById("دائن").value);
+
+if(!التاريخ || (مدين===0 && دائن===0)){
+alert("أدخل البيانات");
+return;
+}
+
+القيود.push({
+التاريخ:التاريخ,
+الحساب:الحساب,
+البيان:البيان,
+مدين:مدين,
+دائن:دائن
+});
+
+document.getElementById("بيان").value="";
+document.getElementById("مدين").value=0;
+document.getElementById("دائن").value=0;
+
+حفظ();
+}
+
+function حذف_قيد(رقم){
+القيود.splice(رقم,1);
+حفظ();
+}
+
+function عرض_القيود(){
+
+let جدول = document.getElementById("جدول_القيود");
+جدول.innerHTML="";
+
+القيود.forEach((قيد,رقم)=>{
+
+let اسم = الحسابات.find(ح=>ح.الكود===قيد.الحساب)?.الاسم || قيد.الحساب;
+
+جدول.innerHTML += `
+<tr>
+<td>${قيد.التاريخ}</td>
+<td>${اسم}</td>
+<td>${قيد.البيان}</td>
+<td>${قيد.مدين}</td>
+<td>${قيد.دائن}</td>
+<td><button class="red" onclick="حذف_قيد(${رقم})">❌</button></td>
+</tr>`;
+
+});
+}
+
+function عرض_الأستاذ(){
+
+let الكود = document.getElementById("اختيار_الأستاذ").value;
+let جدول = document.getElementById("جدول_الأستاذ");
+جدول.innerHTML="";
+
+if(!الكود){
+document.getElementById("رصيد_الأستاذ").innerText=0;
+return;
+}
+
+let الرصيد = 0;
+
+القيود
+.filter(قيد=>قيد.الحساب===الكود)
+.forEach(قيد=>{
+
+الرصيد += قيد.مدين - قيد.دائن;
+
+جدول.innerHTML += `
+<tr>
+<td>${قيد.التاريخ}</td>
+<td>${قيد.البيان}</td>
+<td>${قيد.مدين}</td>
+<td>${قيد.دائن}</td>
+<td>${الرصيد}</td>
+</tr>`;
+
+});
+
+document.getElementById("رصيد_الأستاذ").innerText = الرصيد;
+}
+
+function عرض_ميزان(){
+
+let إجمالي = {};
+
+القيود.forEach(قيد=>{
+
+if(!إجمالي[قيد.الحساب]){
+إجمالي[قيد.الحساب]={مدين:0,دائن:0};
+}
+
+إجمالي[قيد.الحساب].مدين += قيد.مدين;
+إجمالي[قيد.الحساب].دائن += قيد.دائن;
+
+});
+
+let جدول = document.getElementById("جدول_الميزان");
+جدول.innerHTML="";
+
+for(let كود in إجمالي){
+
+let اسم = الحسابات.find(ح=>ح.الكود===كود)?.الاسم || كود;
+
+جدول.innerHTML += `
+<tr>
+<td>${اسم}</td>
+<td>${إجمالي[كود].مدين}</td>
+<td>${إجمالي[كود].دائن}</td>
+</tr>`;
+}
+}
+
+function عرض_الدخل(){
+
+let إيراد = 0;
+let مصروف = 0;
+
+القيود.forEach(قيد=>{
+
+if(قيد.الحساب.startsWith("4")){
+إيراد += قيد.دائن;
+}
+
+if(قيد.الحساب.startsWith("5")){
+مصروف += قيد.مدين;
+}
+
+});
+
+document.getElementById("دخل_إيراد").innerText = إيراد;
+document.getElementById("دخل_مصروف").innerText = مصروف;
+document.getElementById("دخل_ربح").innerText = إيراد - مصروف;
+}
+
+function عرض_الميزانية(){
+
+let أصول = 0;
+let خصوم = 0;
+
+القيود.forEach(قيد=>{
+
+if(قيد.الحساب.startsWith("1")){
+أصول += قيد.مدين - قيد.دائن;
+}
+
+if(قيد.الحساب.startsWith("2")){
+خصوم += قيد.دائن - قيد.مدين;
+}
+
+});
+
+let إيراد = 0;
+let مصروف = 0;
+
+القيود.forEach(قيد=>{
+
+if(قيد.الحساب.startsWith("4")) إيراد += قيد.دائن;
+if(قيد.الحساب.startsWith("5")) مصروف += قيد.مدين;
+
+});
+
+let ملكية = إيراد - مصروف;
+
+document.getElementById("ميزانية_أصول").innerText = أصول;
+document.getElementById("ميزانية_خصوم").innerText = خصوم;
+document.getElementById("ميزانية_ملكية").innerText = ملكية;
+}
+
+function عرض_الرئيسية(){
+
+let إيراد = 0;
+let مصروف = 0;
+
+القيود.forEach(قيد=>{
+
+if(قيد.الحساب.startsWith("4")) إيراد += قيد.دائن;
+if(قيد.الحساب.startsWith("5")) مصروف += قيد.مدين;
+
+});
+
+document.getElementById("عدد_القيود").innerText = القيود.length;
+document.getElementById("الإيرادات").innerText = إيراد;
+document.getElementById("المصروفات").innerText = مصروف;
+document.getElementById("الربح").innerText = إيراد - مصروف;
+}
+
+function تحديث_كامل(){
+
+عرض_القيود();
+عرض_الأستاذ();
+عرض_ميزان();
+عرض_الدخل();
+عرض_الميزانية();
+عرض_الرئيسية();
+
+}
+
+تحميل_الحسابات();
+تحديث_كامل();
+
+</script>
+
+</body>
+</html>
